@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Contractor Automation Score | AGM Pro Tools</title>
+<meta name="description" content="Get your free Contractor Automation Score. A 100-point diagnostic that shows exactly where your business is losing leads, quotes, and reviews.">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0f1a; color: #e0e0e0; min-height: 100vh; }
+
+    /* Header */
+    .top-bar { text-align: center; padding: 20px 24px 0; }
+    .top-bar .logo { font-size: 13px; font-weight: 700; color: #3b82f6; letter-spacing: 1.5px; text-transform: uppercase; }
+
+    /* Container */
+    .container { max-width: 620px; margin: 0 auto; padding: 24px; }
+
+    /* Landing Hero */
+    .hero { text-align: center; padding: 48px 0 32px; }
+    .hero h1 { font-size: 32px; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 16px; }
+    .hero h1 span { color: #3b82f6; }
+    .hero p { color: #8a9bb5; font-size: 17px; line-height: 1.6; max-width: 480px; margin: 0 auto 24px; }
+    .hero-stats { display: flex; justify-content: center; gap: 32px; margin: 24px 0; }
+    .hero-stat { text-align: center; }
+    .hero-stat .num { font-size: 28px; font-weight: 800; color: #fff; }
+    .hero-stat .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .start-btn { display: inline-block; background: #3b82f6; color: #fff; font-size: 17px; font-weight: 700; padding: 16px 48px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s; }
+    .start-btn:hover { background: #2563eb; }
+    .trust-line { color: #475569; font-size: 12px; margin-top: 12px; }
+
+    /* Progress bar */
+    .progress-wrap { margin-bottom: 32px; display: none; }
+    .progress-bar { background: #1e293b; border-radius: 8px; height: 6px; overflow: hidden; }
+    .progress-fill { background: #3b82f6; height: 100%; width: 0%; border-radius: 8px; transition: width 0.4s ease; }
+    .progress-label { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: #64748b; }
+
+    /* Question cards */
+    .question-card { display: none; animation: fadeIn 0.3s ease; }
+    .question-card.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .q-category { font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .q-text { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.3; margin-bottom: 24px; }
+
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option { background: #111827; border: 2px solid #1e293b; border-radius: 10px; padding: 16px 20px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 14px; }
+    .option:hover { border-color: #334155; background: #1a2332; }
+    .option.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .option-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #334155; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .option.selected .option-dot { border-color: #3b82f6; background: #3b82f6; }
+    .option.selected .option-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+    .option-text { font-size: 15px; color: #e0e0e0; }
+
+    /* Contact form */
+    .contact-form { display: none; animation: fadeIn 0.3s ease; }
+    .contact-form.active { display: block; }
+    .contact-form h2 { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .contact-form p { color: #8a9bb5; font-size: 14px; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #8a9bb5; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%; padding: 12px 16px; background: #111827; border: 1px solid #1e293b; border-radius: 8px;
+        color: #e0e0e0; font-size: 15px; font-family: inherit; outline: none; transition: border 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #3b82f6; }
+    .form-group textarea { height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .submit-btn { display: block; width: 100%; background: #3b82f6; color: #fff; font-size: 17px; font-weight: 700; padding: 16px; border-radius: 8px; border: none; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
+    .submit-btn:hover { background: #2563eb; }
+    .submit-btn:disabled { background: #334155; cursor: not-allowed; }
+
+    /* Results */
+    .results { display: none; animation: fadeIn 0.4s ease; }
+    .results.active { display: block; }
+
+    /* Score ring */
+    .score-ring-wrap { text-align: center; margin: 32px 0 24px; }
+    .score-ring { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .score-center .big { font-size: 56px; font-weight: 800; line-height: 1; }
+    .score-center .small { font-size: 16px; color: #64748b; }
+    .score-label-badge { display: inline-block; font-size: 14px; font-weight: 700; padding: 6px 16px; border-radius: 20px; margin: 12px 0; }
+    .score-message { color: #8a9bb5; font-size: 16px; line-height: 1.5; max-width: 500px; margin: 0 auto; text-align: center; }
+
+    .revenue-box { background: linear-gradient(135deg, #1e293b, #111827); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center; }
+    .revenue-box .rev-label { color: #8a9bb5; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .revenue-box .rev-amount { font-size: 28px; font-weight: 800; color: #f97316; }
+    .revenue-box .rev-sub { color: #64748b; font-size: 12px; margin-top: 4px; }
+
+    .pillar-bar { margin-bottom: 20px; }
+    .pillar-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .pillar-name { font-weight: 700; color: #e0e0e0; font-size: 15px; }
+    .pillar-score { font-weight: 700; font-size: 15px; }
+    .pillar-track { background: #1e293b; border-radius: 8px; height: 12px; overflow: hidden; }
+    .pillar-fill { height: 100%; border-radius: 8px; transition: width 0.8s ease; }
+    .pillar-rec { color: #8a9bb5; font-size: 13px; margin-top: 6px; }
+
+    .cta-box { display: block; text-align: center; background: #3b82f6; color: #fff; font-size: 17px; font-weight: 700; text-decoration: none; padding: 18px 32px; border-radius: 10px; margin: 32px 0; }
+    .cta-box:hover { background: #2563eb; }
+
+    .next-steps { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; margin: 24px 0; }
+    .next-steps strong { color: #fff; }
+    .next-steps p { color: #8a9bb5; font-size: 14px; line-height: 1.6; margin-top: 8px; }
+
+    .tagline { text-align: center; color: #64748b; font-size: 13px; margin: 24px 0; font-style: italic; }
+
+    .footer { text-align: center; color: #475569; font-size: 12px; padding: 32px 0 24px; border-top: 1px solid #1e293b; margin-top: 40px; }
+    .footer a { color: #3b82f6; text-decoration: none; }
+
+    @media (max-width: 600px) {
+        .hero h1 { font-size: 26px; }
+        .form-row { grid-template-columns: 1fr; }
+        .hero-stats { gap: 20px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="top-bar"><div class="logo">AGM Pro Tools</div></div>
+
+<div class="container">
+
+    <!-- ═══ HERO ═══ -->
+    <div class="hero" id="hero">
+        <h1>What's Your <span>Contractor Automation Score</span>?</h1>
+        <p>A free 2-minute diagnostic that shows exactly where your business is losing leads, quotes, and reviews — and what to do about it.</p>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="num">100</div><div class="lbl">Point Scale</div></div>
+            <div class="hero-stat"><div class="num">5</div><div class="lbl">Pillars Scored</div></div>
+            <div class="hero-stat"><div class="num">2</div><div class="lbl">Minutes</div></div>
+        </div>
+        <button class="start-btn" onclick="startQuiz()">Get Your Free Score</button>
+        <div class="trust-line">No credit card. No spam. Just your score.</div>
+    </div>
+
+    <!-- ═══ PROGRESS ═══ -->
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label"><span id="progressText">Question 1 of 9</span><span id="progressPct">0%</span></div>
+    </div>
+
+    <!-- ═══ QUESTIONS ═══ -->
+    <div id="questionsContainer"></div>
+
+    <!-- ═══ CONTACT FORM ═══ -->
+    <div class="contact-form" id="contactForm">
+        <h2>Almost there — where should we send your report?</h2>
+        <p>We'll email you a detailed breakdown with personalized recommendations.</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" id="firstName" placeholder="John" required>
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="lastName" placeholder="Smith">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="john@company.com" required>
+        </div>
+        <div class="form-group">
+            <label>Phone (optional)</label>
+            <input type="tel" id="phone" placeholder="(555) 123-4567">
+        </div>
+        <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="company" placeholder="Smith Turf Co">
+        </div>
+
+        <hr style="border:none;border-top:1px solid #1e293b;margin:24px 0;">
+        <p style="color:#64748b;font-size:13px;margin-bottom:16px;">A few more questions to personalize your report (optional):</p>
+
+        <div class="form-group">
+            <label>What field service software do you use?</label>
+            <select id="fsmPlatform">
+                <option value="">Select...</option>
+                <option value="jobber">Jobber</option>
+                <option value="housecall_pro">Housecall Pro</option>
+                <option value="field_routes">Field Routes</option>
+                <option value="service_titan">ServiceTitan</option>
+                <option value="other">Other</option>
+                <option value="none">None</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>How many crews/trucks?</label>
+                <select id="crewCount">
+                    <option value="">Select...</option>
+                    <option value="1-3">1-3</option>
+                    <option value="4-10">4-10</option>
+                    <option value="11-25">11-25</option>
+                    <option value="25+">25+</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Approximate annual revenue?</label>
+                <select id="annualRevenue">
+                    <option value="">Select...</option>
+                    <option value="under_500k">Under $500K</option>
+                    <option value="500k_1m">$500K - $1M</option>
+                    <option value="1m_3m">$1M - $3M</option>
+                    <option value="3m_plus">$3M+</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>What's your biggest operational headache right now?</label>
+            <textarea id="biggestHeadache" placeholder="e.g., Leads fall through the cracks, quotes don't get followed up..."></textarea>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitQuiz()">See My Score</button>
+    </div>
+
+    <!-- ═══ RESULTS ═══ -->
+    <div class="results" id="results"></div>
+
+    <div class="footer">
+        <p>Produced by <a href="https://agmprotools.com">AGM Pro Tools</a></p>
+        <p style="margin-top:4px;">Automated Growth Management for Contractors</p>
+    </div>
+
+</div>
+
+<script>
+// ── Question Data ──────────────────────────────────────────────────────────
+const QUESTIONS = [
+    {
+        key: "speed_to_lead",
+        category: "Speed to Lead",
+        text: "How quickly does a new lead get a response from your team?",
+        options: [
+            { text: "Next day or later", points: 0 },
+            { text: "Same day", points: 5 },
+            { text: "30 minutes to 2 hours", points: 10 },
+            { text: "5-30 minutes", points: 15 },
+            { text: "Under 5 minutes", points: 20 },
+        ]
+    },
+    {
+        key: "quote_followup_method",
+        category: "Quote Follow-Up",
+        text: "After sending a quote, how do you follow up?",
+        options: [
+            { text: "No follow-up process", points: 0 },
+            { text: "We wait for them to call back", points: 2 },
+            { text: "Manual call within 48 hours", points: 6 },
+            { text: "Automated sequence within 24 hours", points: 10 },
+        ]
+    },
+    {
+        key: "quote_followup_touches",
+        category: "Quote Follow-Up",
+        text: "How many follow-up touches before you stop?",
+        options: [
+            { text: "Just the initial quote", points: 0 },
+            { text: "1-2 touches", points: 4 },
+            { text: "3-4 touches", points: 7 },
+            { text: "5+ touches over 2 weeks", points: 10 },
+        ]
+    },
+    {
+        key: "review_method",
+        category: "Review Generation",
+        text: "How do you request reviews after a completed job?",
+        options: [
+            { text: "No review process", points: 0 },
+            { text: "We ask in person sometimes", points: 3 },
+            { text: "Rep sends manually", points: 6 },
+            { text: "Automated SMS/email within 24 hours", points: 10 },
+        ]
+    },
+    {
+        key: "review_count",
+        category: "Review Generation",
+        text: "What's your Google review count?",
+        options: [
+            { text: "Don't know", points: 0 },
+            { text: "Under 20", points: 2 },
+            { text: "20-49", points: 4 },
+            { text: "50-99", points: 7 },
+            { text: "100+", points: 10 },
+        ]
+    },
+    {
+        key: "pipeline_visibility",
+        category: "Pipeline Visibility",
+        text: "Can you see all open quotes and their status in one place?",
+        options: [
+            { text: "No, it's in people's heads", points: 0 },
+            { text: "Spreadsheet or whiteboard", points: 3 },
+            { text: "Yes, but I check multiple systems", points: 6 },
+            { text: "Yes, real-time dashboard", points: 10 },
+        ]
+    },
+    {
+        key: "close_rate_tracking",
+        category: "Pipeline Visibility",
+        text: "Do you know your close rate on quotes?",
+        options: [
+            { text: "No idea", points: 0 },
+            { text: "I could guess", points: 3 },
+            { text: "Roughly, from manual tracking", points: 6 },
+            { text: "Yes, tracked automatically", points: 10 },
+        ]
+    },
+    {
+        key: "reactivation_outreach",
+        category: "Customer Reactivation",
+        text: "Do you reach out to past customers for seasonal or repeat work?",
+        options: [
+            { text: "No", points: 0 },
+            { text: "Only if they call us", points: 2 },
+            { text: "Manual outreach occasionally", points: 6 },
+            { text: "Automated campaigns by service date", points: 10 },
+        ]
+    },
+    {
+        key: "customer_data",
+        category: "Customer Reactivation",
+        text: "Do you have a system for collecting and using customer data?",
+        options: [
+            { text: "Not really", points: 0 },
+            { text: "Just what's in our FSM", points: 3 },
+            { text: "Basic contact list", points: 5 },
+            { text: "CRM with segmented data", points: 10 },
+        ]
+    }
+];
+
+const PILLARS = {
+    "Speed to Lead": { keys: ["speed_to_lead"], max: 20, impact: "15-25% of leads going to faster competitors" },
+    "Quote Follow-Up": { keys: ["quote_followup_method", "quote_followup_touches"], max: 20, impact: "20-30% of quotes dying in silence" },
+    "Review Generation": { keys: ["review_method", "review_count"], max: 20, impact: "10-15% fewer inbound leads from missing social proof" },
+    "Pipeline Visibility": { keys: ["pipeline_visibility", "close_rate_tracking"], max: 20, impact: "10-20% efficiency loss from hidden bottlenecks" },
+    "Customer Reactivation": { keys: ["reactivation_outreach", "customer_data"], max: 20, impact: "15-25% of repeat revenue left on table" },
+};
+
+const SCORE_RANGES = [
+    { min: 80, max: 100, label: "Automation Leader", color: "#22c55e", msg: "You're ahead of 90% of contractors. Let's talk about what the top 1% do differently." },
+    { min: 60, max: 79, label: "Growth Ready", color: "#3b82f6", msg: "Strong foundation. You have a few fixable gaps that are costing you real revenue." },
+    { min: 40, max: 59, label: "Opportunity Zone", color: "#eab308", msg: "Half your growth engine is manual. Here's exactly where leads are falling through." },
+    { min: 20, max: 39, label: "At Risk", color: "#f97316", msg: "You're losing quotes and reviews every week. The good news: these are the easiest wins to automate." },
+    { min: 0, max: 19, label: "Critical", color: "#ef4444", msg: "Your competitors who automate this are winning the jobs you're quoting. Let's fix that." },
+];
+
+const RECS = {
+    "Speed to Lead": {
+        low: "Your leads are waiting too long. The first contractor to respond wins 78% of jobs. Automated instant response changes this overnight.",
+        mid: "You're responding, but not fast enough. Sub-5-minute automated response puts you ahead of 90% of competitors.",
+        high: "Excellent response time. You're already winning the speed game."
+    },
+    "Quote Follow-Up": {
+        low: "Quotes are going out and dying in silence. 80% of sales require 5+ follow-ups, but most contractors stop at 1.",
+        mid: "You're following up, but inconsistently. An automated sequence ensures no quote ever goes cold.",
+        high: "Strong follow-up discipline. Your close rate reflects it."
+    },
+    "Review Generation": {
+        low: "You're invisible to homeowners researching contractors. Automated review requests would change your online presence in 60 days.",
+        mid: "Some reviews coming in, but not consistently. Automating the ask at the right moment doubles your collection rate.",
+        high: "Great review engine. Social proof is working for you."
+    },
+    "Pipeline Visibility": {
+        low: "You can't improve what you can't see. Without pipeline visibility, bottlenecks hide and revenue leaks.",
+        mid: "You have some visibility, but it's fragmented. A single real-time view surfaces opportunities you're missing.",
+        high: "Clear pipeline visibility. You know your numbers."
+    },
+    "Customer Reactivation": {
+        low: "Past customers are your cheapest revenue source. Without reactivation, you're paying to acquire customers you already won.",
+        mid: "Some repeat business, but leaving money on the table. Automated seasonal campaigns multiply this effortlessly.",
+        high: "You're maximizing customer lifetime value. Well done."
+    }
+};
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentQ = 0;
+let answers = {};
+
+function startQuiz() {
+    document.getElementById('hero').style.display = 'none';
+    document.getElementById('progressWrap').style.display = 'block';
+    buildQuestions();
+    showQuestion(0);
+}
+
+function buildQuestions() {
+    const container = document.getElementById('questionsContainer');
+    QUESTIONS.forEach((q, i) => {
+        let optionsHtml = q.options.map((opt, oi) =>
+            `<div class="option" data-q="${i}" data-opt="${oi}" onclick="selectOption(${i}, ${oi})">
+                <div class="option-dot"></div>
+                <div class="option-text">${opt.text}</div>
+            </div>`
+        ).join('');
+
+        container.innerHTML += `
+            <div class="question-card" id="q${i}">
+                <div class="q-category">${q.category}</div>
+                <div class="q-text">${q.text}</div>
+                <div class="options">${optionsHtml}</div>
+            </div>`;
+    });
+}
+
+function showQuestion(idx) {
+    document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById(`q${idx}`);
+    if (card) {
+        card.classList.add('active');
+        // Re-trigger animation
+        card.style.animation = 'none';
+        card.offsetHeight;
+        card.style.animation = '';
+    }
+    updateProgress(idx);
+}
+
+function updateProgress(idx) {
+    const total = QUESTIONS.length;
+    const pct = Math.round((idx / total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `Question ${idx + 1} of ${total}`;
+    document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function selectOption(qIdx, optIdx) {
+    // Mark selected
+    document.querySelectorAll(`[data-q="${qIdx}"]`).forEach(o => o.classList.remove('selected'));
+    document.querySelector(`[data-q="${qIdx}"][data-opt="${optIdx}"]`).classList.add('selected');
+
+    answers[QUESTIONS[qIdx].key] = optIdx;
+
+    // Auto-advance after short delay
+    setTimeout(() => {
+        if (qIdx < QUESTIONS.length - 1) {
+            currentQ = qIdx + 1;
+            showQuestion(currentQ);
+        } else {
+            showContactForm();
+        }
+    }, 350);
+}
+
+function showContactForm() {
+    document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressText').textContent = 'Final step';
+    document.getElementById('progressPct').textContent = '100%';
+    document.getElementById('contactForm').classList.add('active');
+}
+
+function submitQuiz() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    if (!firstName || !email) {
+        alert('Please enter your name and email to see your score.');
+        return;
+    }
+
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = 'Calculating...';
+
+    // Gather contact + intake
+    const contact = {
+        first_name: firstName,
+        last_name: document.getElementById('lastName').value.trim(),
+        email: email,
+        phone: document.getElementById('phone').value.trim(),
+        company: document.getElementById('company').value.trim()
+    };
+    const intake = {
+        fsm_platform: document.getElementById('fsmPlatform').value,
+        crew_count: document.getElementById('crewCount').value,
+        annual_revenue: document.getElementById('annualRevenue').value,
+        biggest_headache: document.getElementById('biggestHeadache').value.trim()
+    };
+
+    // Calculate score
+    setTimeout(() => {
+        const result = calculateScore(answers);
+        showResults(result, contact, intake);
+    }, 800);
+}
+
+function calculateScore(ans) {
+    let questionScores = {};
+    QUESTIONS.forEach(q => {
+        const idx = ans[q.key] || 0;
+        questionScores[q.key] = q.options[idx].points;
+    });
+
+    let pillarResults = {};
+    let total = 0;
+
+    for (const [name, cfg] of Object.entries(PILLARS)) {
+        const score = cfg.keys.reduce((sum, k) => sum + (questionScores[k] || 0), 0);
+        const pct = Math.round(score / cfg.max * 100);
+        pillarResults[name] = { score, max: cfg.max, pct, impact: cfg.impact };
+        total += score;
+    }
+
+    let range = SCORE_RANGES.find(r => total >= r.min && total <= r.max) || SCORE_RANGES[SCORE_RANGES.length - 1];
+
+    // Revenue estimate
+    const gapMultipliers = { "Speed to Lead": 0.20, "Quote Follow-Up": 0.25, "Review Generation": 0.12, "Pipeline Visibility": 0.15, "Customer Reactivation": 0.20 };
+    let totalGapPct = 0;
+    for (const [name, data] of Object.entries(pillarResults)) {
+        const gapRatio = 1 - (data.score / data.max);
+        totalGapPct += gapRatio * (gapMultipliers[name] || 0.1);
+    }
+    const revLow = Math.max(500, Math.round(totalGapPct * 800000 / 12 / 500) * 500);
+    const revHigh = Math.max(1000, Math.round(totalGapPct * 1500000 / 12 / 500) * 500);
+
+    return { total, range, pillars: pillarResults, revLow, revHigh };
+}
+
+function showResults(result, contact, intake) {
+    document.getElementById('contactForm').classList.remove('active');
+    document.getElementById('progressWrap').style.display = 'none';
+
+    const { total, range, pillars, revLow, revHigh } = result;
+
+    // Build pillar bars
+    let pillarHtml = '';
+    for (const [name, data] of Object.entries(pillars)) {
+        const barColor = data.pct >= 80 ? '#22c55e' : data.pct >= 60 ? '#3b82f6' : data.pct >= 40 ? '#eab308' : data.pct >= 20 ? '#f97316' : '#ef4444';
+        const rec = RECS[name] ? (data.pct >= 80 ? RECS[name].high : data.pct >= 50 ? RECS[name].mid : RECS[name].low) : '';
+
+        pillarHtml += `
+            <div class="pillar-bar">
+                <div class="pillar-header">
+                    <span class="pillar-name">${name}</span>
+                    <span class="pillar-score" style="color:${barColor}">${data.score}/${data.max}</span>
+                </div>
+                <div class="pillar-track"><div class="pillar-fill" style="background:${barColor};width:0%;" data-target="${data.pct}"></div></div>
+                <div class="pillar-rec">${rec}</div>
+            </div>`;
+    }
+
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `
+        <div class="score-ring-wrap">
+            <div class="score-ring">
+                <svg width="200" height="200" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="#1e293b" stroke-width="12"/>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="${range.color}" stroke-width="12"
+                        stroke-dasharray="0 534" stroke-linecap="round" id="scoreArc"/>
+                </svg>
+                <div class="score-center">
+                    <div class="big" style="color:${range.color}" id="scoreNum">0</div>
+                    <div class="small">out of 100</div>
+                </div>
+            </div>
+            <div class="score-label-badge" style="background:${range.color}22;color:${range.color};">${range.label}</div>
+            <p class="score-message">${contact.first_name}, ${range.msg.charAt(0).toLowerCase()}${range.msg.slice(1)}</p>
+        </div>
+
+        <div class="revenue-box">
+            <div class="rev-label">Estimated Monthly Revenue Left on the Table</div>
+            <div class="rev-amount">$${revLow.toLocaleString()} - $${revHigh.toLocaleString()}/mo</div>
+            <div class="rev-sub">Based on your answers and industry benchmarks</div>
+        </div>
+
+        <h3 style="font-size:18px;font-weight:700;color:#fff;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #1e293b;">Your Score Breakdown</h3>
+        ${pillarHtml}
+
+        <a class="cta-box" href="https://agmprotools.com">Book a Free Strategy Call</a>
+
+        <div class="next-steps">
+            <strong>What happens next?</strong>
+            <p>On your strategy call, we'll walk through your score together and show you exactly which automations would have the biggest impact. No pressure, no pitch deck — just a clear picture of what's possible.</p>
+        </div>
+
+        <div class="tagline">"Your software runs the job. We run the growth."</div>
+    `;
+
+    resultsDiv.classList.add('active');
+
+    // Animate score ring + number
+    requestAnimationFrame(() => {
+        const arc = document.getElementById('scoreArc');
+        const numEl = document.getElementById('scoreNum');
+        const targetDash = total * 5.34;
+
+        // Animate arc
+        setTimeout(() => {
+            arc.style.transition = 'stroke-dasharray 1.5s ease-out';
+            arc.setAttribute('stroke-dasharray', `${targetDash} ${534 - targetDash}`);
+        }, 100);
+
+        // Animate number
+        let current = 0;
+        const step = total / 40;
+        const counter = setInterval(() => {
+            current += step;
+            if (current >= total) { current = total; clearInterval(counter); }
+            numEl.textContent = Math.round(current);
+        }, 30);
+
+        // Animate pillar bars
+        setTimeout(() => {
+            document.querySelectorAll('.pillar-fill').forEach(bar => {
+                bar.style.transition = 'width 0.8s ease-out';
+                bar.style.width = bar.dataset.target + '%';
+            });
+        }, 600);
+    });
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
