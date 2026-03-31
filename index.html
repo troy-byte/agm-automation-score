@@ -1171,8 +1171,6 @@ function selectScored(qIndex, value, el) {
   el.closest('.option-list').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   enableNext();
-  // Auto-advance after brief delay
-  setTimeout(() => nextStep(), 350);
 }
 
 function selectBonus(bi, value, el) {
@@ -1180,7 +1178,6 @@ function selectBonus(bi, value, el) {
   el.closest('.select-grid').querySelectorAll('.select-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   enableNext();
-  setTimeout(() => nextStep(), 350);
 }
 
 function nextStep() {
