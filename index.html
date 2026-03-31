@@ -1287,6 +1287,9 @@ function renderResults() {
   const lossLow = Math.max(monthlyLoss, 500);
   const lossHigh = Math.round(lossLow * 2.2);
 
+  // Store globally so report button can access
+  window._scoreData = { catScores, totalScore, tier, lossLow, lossHigh, ticketAnswer };
+
   const card = document.getElementById('resultsCard');
   card.innerHTML = `
     <div class="score-ring">
@@ -1334,10 +1337,10 @@ function renderResults() {
         Book a Free Strategy Call
         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
       </a>
-      <button class="btn-secondary" style="width:100%;max-width:400px;">
-        Get Your Detailed Report
+      <button class="btn-secondary" style="width:100%;max-width:400px;" onclick="openFullReport()">
+        View Your Detailed Report
       </button>
-      <div class="results-email-note">Report will be sent to ${userData.email || ''}</div>
+      <div class="results-email-note">Full report also emailed to <strong>${userData.email || ''}</strong></div>
     </div>
   `;
 
@@ -1374,6 +1377,256 @@ function animateCounter(el, target, color) {
     if (progress < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+}
+
+function openFullReport() {
+  const d = window._scoreData;
+  if (!d) return;
+  const { catScores, totalScore, tier, lossLow, lossHigh } = d;
+  const name = userData.name || 'there';
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const circumference = 2 * Math.PI * 95;
+  const ringOffset = Math.round(circumference - (circumference * totalScore / 100));
+  const revLowAnnual = (lossLow * 12).toLocaleString();
+  const revHighAnnual = (lossHigh * 12).toLocaleString();
+  const projRecovery = Math.round(lossHigh * 0.6).toLocaleString();
+  const projAnnual = (Math.round(lossHigh * 0.6) * 12).toLocaleString();
+
+  const gapInsights = {
+    'Speed to Lead': {
+      desc: 'How quickly new leads get a response from your team',
+      problem: "When a lead comes in and doesn't hear back within 5 minutes, there's a 78% chance they've already called your competitor. Every hour of delay cuts your close rate in half.",
+      fix: "Automated instant response \u2014 text, email, or call-back \u2014 triggered the moment a lead hits your system. No human needed. The fastest contractor wins."
+    },
+    'Quote Follow-Up': {
+      desc: 'What happens after a quote goes out \u2014 automated or manual',
+      problem: "Industry data shows 80% of jobs are won between the 2nd and 5th follow-up. If you're sending one quote and waiting, you're handing revenue to the contractor who follows up three times.",
+      fix: "A timed follow-up sequence that automatically nudges the prospect at day 1, 3, 5, and 7 after the quote goes out. This single automation typically recovers 15-30% of quotes."
+    },
+    'Review Generation': {
+      desc: 'Whether reviews are requested automatically after every job',
+      problem: "Contractors with 100+ Google reviews get 3x more inbound calls than those with fewer than 20. Every week without automated review requests is organic traffic you'll never get back.",
+      fix: "An automatic review request sent via text within 24 hours of job completion. Text requests convert at 3-5x the rate of email. Most contractors double their review count within 90 days."
+    },
+    'Pipeline Visibility': {
+      desc: 'Whether you can see every open quote, its age, and status in one place',
+      problem: "If you can't see every open quote, its age, and its status in one place, you're flying blind. The average contractor has $50K-$150K in unworked quotes sitting in their system.",
+      fix: "A single dashboard that shows every quote, every stage, and flags the ones going cold \u2014 so you know exactly where to focus today. This visibility alone recovers 10-20% of stale quotes."
+    },
+    'Customer Reactivation': {
+      desc: 'After-hours call handling and staying in touch with past customers',
+      problem: "It costs 5-7x more to win a new customer than to reactivate a past one. If you did work for someone 12 months ago and haven't reached out, that customer is getting mailers from your competitors.",
+      fix: "Automated seasonal campaigns triggered by install date. Plus after-hours text-back so you never miss an inbound call. One setup, runs forever."
+    }
+  };
+
+  function barClass(pct) { return pct >= 75 ? 'bar-green' : pct >= 50 ? 'bar-blue' : pct >= 25 ? 'bar-yellow' : 'bar-red'; }
+  function scoreClass(pct) { return pct >= 75 ? 'score-green' : pct >= 50 ? 'score-blue' : pct >= 25 ? 'score-yellow' : 'score-red'; }
+
+  let catHTML = '';
+  categories.forEach((cat, i) => {
+    const pct = Math.round((catScores[i] / cat.max) * 100);
+    const gap = gapInsights[cat.name] || {};
+    catHTML += `
+    <div class="cat-row">
+      <div class="cat-header"><span class="cat-name">${cat.name}</span><span class="cat-score ${scoreClass(pct)}">${catScores[i]}/${cat.max} (${pct}%)</span></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill ${barClass(pct)}" style="width:${pct}%;"></div></div>
+      <div class="cat-desc">${gap.desc || ''}</div>
+    </div>`;
+  });
+
+  // Sort by score ascending for gap analysis
+  const sorted = categories.map((cat, i) => ({ name: cat.name, score: catScores[i], max: cat.max, pct: Math.round((catScores[i]/cat.max)*100) }))
+    .sort((a, b) => a.pct - b.pct);
+  const weakest = sorted[0].name;
+  const fsm = (bonusAnswers[0] || 'your current software');
+
+  let gapHTML = '';
+  sorted.forEach((s, i) => {
+    const gap = gapInsights[s.name] || {};
+    const severity = s.pct < 25 ? ['var(--red-dim)', 'var(--red)', 'Needs Attention'] : ['var(--yellow-dim)', 'var(--yellow)', 'Room to Grow'];
+    gapHTML += `
+    <div class="gap-card" style="border-left-color:${severity[1]}">
+      <div class="gap-card-header"><h3>${s.name} (${s.score}/${s.max})</h3><span class="gap-score-badge" style="background:${severity[0]};color:${severity[1]};">${severity[2]}</span></div>
+      <div class="gap-section"><div class="gap-section-label problem">What This Means</div><p>${gap.problem || ''}</p></div>
+      <div class="gap-section"><div class="gap-section-label fix">What Top Contractors Do Differently</div><p>${gap.fix || ''}</p></div>
+    </div>`;
+  });
+  // Split gap cards: first 3 on page 4, remaining on page 5
+  const gapCards = sorted.map((s, i) => {
+    const gap = gapInsights[s.name] || {};
+    const severity = s.pct < 25 ? ['var(--red-dim)', 'var(--red)', 'Needs Attention'] : ['var(--yellow-dim)', 'var(--yellow)', 'Room to Grow'];
+    return `<div class="gap-card" style="border-left-color:${severity[1]}">
+      <div class="gap-card-header"><h3>${s.name} (${s.score}/${s.max})</h3><span class="gap-score-badge" style="background:${severity[0]};color:${severity[1]};">${severity[2]}</span></div>
+      <div class="gap-section"><div class="gap-section-label problem">What This Means</div><p>${gap.problem || ''}</p></div>
+      <div class="gap-section"><div class="gap-section-label fix">What Top Contractors Do Differently</div><p>${gap.fix || ''}</p></div>
+    </div>`;
+  });
+
+  const pageHeader = `<div class="page-header"><span class="page-header-brand">AGM Pro Tools</span><span class="page-header-url">agmprotools.com</span></div>`;
+  const pageFooter = (pg) => `<div class="page-footer"><span>AGMProTools.com | Contractor Automation Score &mdash; Prepared for ${name}</span><span>Page ${pg} of 6</span></div>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contractor Automation Score &mdash; ${name}</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--bg-card:#141414;--bg-card-alt:#1a1a1a;--border:#2a2a2a;--text:#e8e8e8;--text-muted:#999;--text-dim:#666;--green:#4CAF50;--green-dim:rgba(76,175,80,0.15);--blue:#42A5F5;--blue-dim:rgba(66,165,245,0.15);--yellow:#FFC107;--yellow-dim:rgba(255,193,7,0.12);--red:#EF5350;--red-dim:rgba(239,83,80,0.12);--white:#fff}
+html{font-size:15px}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{width:8.5in;min-height:11in;margin:0 auto;padding:0.75in 0.85in;position:relative;display:flex;flex-direction:column}.page+.page{page-break-before:always}
+h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.02em;line-height:1.15;color:var(--white)}h2{font-size:1.65rem;font-weight:700;letter-spacing:-0.015em;line-height:1.2;color:var(--white);margin-bottom:0.5rem}h3{font-size:1.15rem;font-weight:600;color:var(--white);margin-bottom:0.35rem}h4{font-size:0.95rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}p{color:var(--text);margin-bottom:0.75rem}
+.text-muted{color:var(--text-muted)}.text-dim{color:var(--text-dim)}.text-green{color:var(--green)}.text-small{font-size:0.85rem}.text-xs{font-size:0.75rem}
+.mt-1{margin-top:0.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}.mb-1{margin-bottom:0.5rem}.mb-2{margin-bottom:1rem}.flex{display:flex}.gap-2{gap:1rem}.text-center{text-align:center}
+.divider{height:1px;background:var(--border);margin:1.25rem 0}.divider-accent{height:2px;background:linear-gradient(90deg,var(--green),transparent);margin:1rem 0}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.25rem}.card-flush{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+.cover{justify-content:center;align-items:center;text-align:center}.cover-brand{font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--green);margin-bottom:1.5rem}.cover h1{font-size:2.8rem;margin-bottom:0.4rem}.cover-subtitle{font-size:1.2rem;color:var(--text-muted);margin-bottom:2.5rem}
+.score-ring-wrap{position:relative;width:220px;height:220px;margin:0 auto 1.5rem}.score-ring-bg{fill:none;stroke:var(--border);stroke-width:10}.score-ring-fg{fill:none;stroke:var(--green);stroke-width:10;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:597}.score-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.score-ring-number{font-size:3.2rem;font-weight:800;color:var(--white);line-height:1}.score-ring-max{font-size:1rem;color:var(--text-dim);margin-top:0.15rem}
+.tier-badge{display:inline-block;padding:0.4rem 1.5rem;border-radius:100px;font-weight:700;font-size:1rem;letter-spacing:0.04em;color:var(--white);margin-bottom:2.5rem}
+.cover-footer{margin-top:auto;padding-top:2rem;color:var(--text-dim);font-size:0.8rem}
+.exec-grid{display:grid;grid-template-columns:1fr 240px;gap:1.5rem;margin-top:1rem}.callout-box{background:var(--green-dim);border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:1.25rem;text-align:center}.callout-amount{font-size:1.8rem;font-weight:800;color:var(--green);line-height:1.2}.callout-label{font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.06em}
+.stat-item{padding:0.65rem 0;border-bottom:1px solid var(--border)}.stat-item:last-child{border-bottom:none}.stat-label{font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em}.stat-value{font-size:1rem;font-weight:600;color:var(--white);margin-top:0.1rem}
+.cat-row{margin-bottom:1.35rem}.cat-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem}.cat-name{font-weight:600;color:var(--white);font-size:1rem}.cat-score{font-weight:700;font-size:0.95rem}.cat-bar-track{height:14px;background:var(--bg-card-alt);border-radius:7px;overflow:hidden;border:1px solid var(--border)}.cat-bar-fill{height:100%;border-radius:7px}.cat-desc{font-size:0.8rem;color:var(--text-dim);margin-top:0.3rem}
+.bar-green{background:linear-gradient(90deg,#43A047,#66BB6A)}.bar-blue{background:linear-gradient(90deg,#1E88E5,#42A5F5)}.bar-yellow{background:linear-gradient(90deg,#F9A825,#FDD835)}.bar-red{background:linear-gradient(90deg,#E53935,#EF5350)}
+.score-green{color:var(--green)}.score-blue{color:var(--blue)}.score-yellow{color:var(--yellow)}.score-red{color:var(--red)}
+.legend{display:flex;gap:1.5rem;margin-top:1rem;padding:0.75rem 1rem;background:var(--bg-card);border-radius:8px;border:1px solid var(--border)}.legend-item{display:flex;align-items:center;gap:0.4rem;font-size:0.75rem;color:var(--text-muted)}.legend-dot{width:10px;height:10px;border-radius:50%}
+.gap-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;border-left:4px solid var(--red)}.gap-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem}.gap-card h3{font-size:1.1rem;margin-bottom:0}.gap-score-badge{padding:0.2rem 0.75rem;border-radius:100px;font-size:0.8rem;font-weight:700}.gap-section{margin-bottom:0.75rem}.gap-section:last-child{margin-bottom:0}.gap-section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.25rem}.gap-section-label.problem{color:var(--red)}.gap-section-label.fix{color:var(--green)}.gap-section p{font-size:0.9rem;margin-bottom:0;color:var(--text);line-height:1.55}
+.step-list{counter-reset:steps;list-style:none;padding:0}.step-list li{counter-increment:steps;display:flex;align-items:flex-start;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--border)}.step-list li:last-child{border-bottom:none}.step-list li::before{content:counter(steps);flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--green-dim);color:var(--green);border-radius:50%;font-weight:700;font-size:0.95rem;border:1px solid rgba(76,175,80,0.3)}.step-content h3{font-size:1rem;margin-bottom:0.15rem}.step-content p{font-size:0.88rem;color:var(--text-muted);margin-bottom:0}
+.roi-table{width:100%;border-collapse:collapse;margin-top:0.5rem}.roi-table tr{border-bottom:1px solid var(--border)}.roi-table tr:last-child{border-bottom:none}.roi-table td{padding:0.75rem 0;font-size:0.95rem}.roi-table td:first-child{color:var(--text-muted)}.roi-table td:last-child{text-align:right;font-weight:600;color:var(--white)}.roi-table tr.highlight td{color:var(--green);font-weight:700;font-size:1.05rem}.roi-table tr.highlight td:first-child{color:var(--green)}
+.cta-box{background:linear-gradient(135deg,rgba(76,175,80,0.12),rgba(76,175,80,0.04));border:2px solid rgba(76,175,80,0.4);border-radius:12px;padding:1.75rem;text-align:center;margin-top:1.5rem}.cta-box h3{font-size:1.3rem;color:var(--white);margin-bottom:0.5rem}.cta-box p{color:var(--text-muted);font-size:0.95rem;margin-bottom:0.75rem}.cta-link{display:inline-block;background:var(--green);color:var(--white);text-decoration:none;padding:0.65rem 2rem;border-radius:8px;font-weight:700;font-size:1rem;letter-spacing:0.02em}
+.page-footer{margin-top:auto;padding-top:1rem;display:flex;justify-content:space-between;align-items:center;font-size:0.7rem;color:var(--text-dim);border-top:1px solid var(--border)}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border)}.page-header-brand{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--green)}.page-header-url{font-size:0.7rem;color:var(--text-dim);letter-spacing:0.04em}
+@media print{html{font-size:13px}body{background:var(--bg);-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:100%;min-height:auto;height:100vh;margin:0;padding:0.6in 0.7in;page-break-after:always;page-break-inside:avoid}.page:last-child{page-break-after:auto}.gap-card{page-break-inside:avoid}}
+@page{size:letter;margin:0}
+</style></head><body>
+
+<!-- PAGE 1: COVER -->
+<div class="page cover">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div class="cover-brand">AGM Pro Tools</div>
+    <h1>Contractor<br>Automation Score</h1>
+    <div class="divider-accent" style="width:80px;margin:1rem auto 1.5rem;"></div>
+    <p class="cover-subtitle">Prepared for <strong style="color:var(--white);">${name}</strong></p>
+    <p class="text-dim text-small" style="margin-bottom:2.5rem;">${today}</p>
+    <div class="score-ring-wrap">
+      <svg viewBox="0 0 220 220" width="220" height="220">
+        <circle class="score-ring-bg" cx="110" cy="110" r="95"/>
+        <circle class="score-ring-fg" cx="110" cy="110" r="95" style="stroke:${tier.color};stroke-dashoffset:${ringOffset};"/>
+      </svg>
+      <div class="score-ring-label">
+        <div class="score-ring-number">${totalScore}</div>
+        <div class="score-ring-max">out of 100</div>
+      </div>
+    </div>
+    <div class="tier-badge" style="background:${tier.color};">${tier.label}</div>
+  </div>
+  <div class="cover-footer"><div>Powered by <strong style="color:var(--green);">AGM Pro Tools</strong></div><div style="margin-top:0.3rem;">agmprotools.com</div></div>
+</div>
+
+<!-- PAGE 2: EXECUTIVE SUMMARY -->
+<div class="page">
+  ${pageHeader}
+  <h4>Executive Summary</h4>
+  <h2>Your Score: ${totalScore}/100 &mdash; <span style="color:${tier.color}">${tier.label}</span></h2>
+  <div class="divider-accent" style="width:60px;"></div>
+  <div class="exec-grid">
+    <div>
+      <p style="font-size:1.02rem;line-height:1.7;color:var(--text);">${tier.desc}</p>
+      <div class="callout-box mt-3">
+        <div class="callout-amount">$${lossLow.toLocaleString()} &mdash; $${lossHigh.toLocaleString()}</div>
+        <div class="callout-label">Estimated Recoverable Revenue Per Month</div>
+        <div style="height:1px;background:rgba(76,175,80,0.25);margin:0.75rem 0;"></div>
+        <div class="callout-amount">$${revLowAnnual} &mdash; $${revHighAnnual}</div>
+        <div class="callout-label">Estimated Recoverable Revenue Per Year</div>
+      </div>
+    </div>
+    <div class="card" style="align-self:start;">
+      <h4 style="margin-bottom:0.75rem;font-size:0.7rem;">Business Snapshot</h4>
+      <div class="stat-item"><div class="stat-label">Avg. Ticket Value</div><div class="stat-value">${bonusAnswers[2] || 'Not provided'}</div></div>
+      <div class="stat-item"><div class="stat-label">Crew Size</div><div class="stat-value">${bonusAnswers[1] || 'Not provided'}</div></div>
+      <div class="stat-item"><div class="stat-label">Current Software</div><div class="stat-value">${bonusAnswers[0] || 'Not provided'}</div></div>
+      <div class="stat-item"><div class="stat-label">Biggest Headache</div><div class="stat-value">${bonusAnswers[3] || 'Not provided'}</div></div>
+    </div>
+  </div>
+  ${pageFooter(2)}
+</div>
+
+<!-- PAGE 3: CATEGORY BREAKDOWN -->
+<div class="page">
+  ${pageHeader}
+  <h4>Category Breakdown</h4>
+  <h2>Where You Stand</h2>
+  <div class="divider-accent" style="width:60px;"></div>
+  <p class="text-muted text-small mb-2">Each category is scored based on your quiz responses. The bar color indicates performance tier: green (75%+), blue (50-74%), yellow (25-49%), red (below 25%).</p>
+  ${catHTML}
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Strong (75%+)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div> Moderate (50\u201374%)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow);"></div> Weak (25\u201349%)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div> Critical (<25%)</div>
+  </div>
+  ${pageFooter(3)}
+</div>
+
+<!-- PAGE 4: GAP ANALYSIS (Part 1) -->
+<div class="page">
+  ${pageHeader}
+  <h4>Gap Analysis</h4>
+  <h2>Where You're Losing Revenue</h2>
+  <div class="divider-accent" style="width:60px;"></div>
+  <p class="text-muted text-small mb-2">The following categories scored below 50%, indicating significant automation gaps. Each gap represents recoverable revenue your business is leaving on the table.</p>
+  ${gapCards.slice(0, 3).join('')}
+  ${pageFooter(4)}
+</div>
+
+<!-- PAGE 5: GAP ANALYSIS (Part 2) -->
+<div class="page">
+  ${pageHeader}
+  <h4>Gap Analysis (continued)</h4>
+  <h2>Additional Improvement Areas</h2>
+  <div class="divider-accent" style="width:60px;"></div>
+  ${gapCards.slice(3).join('')}
+  <div class="card mt-3" style="border-left:3px solid var(--green);">
+    <p class="text-small" style="margin-bottom:0;color:var(--text-muted);">
+      <strong style="color:var(--green);">Note:</strong> Statistics referenced in this assessment are derived from published industry research including the MIT/InsideSales.com Lead Response Study (2007), Harvard Business Review (2011), BrightLocal Consumer Review Surveys (2023\u20132024), Bain &amp; Company customer acquisition research, and Jobber industry benchmarks.
+    </p>
+  </div>
+  ${pageFooter(5)}
+</div>
+
+<!-- PAGE 6: ROADMAP + CTA -->
+<div class="page">
+  ${pageHeader}
+  <h4>Your Automation Roadmap</h4>
+  <h2>Recommended Next Steps</h2>
+  <div class="divider-accent" style="width:60px;"></div>
+  <ol class="step-list">
+    <li><div class="step-content"><h3>Share this report with your team</h3><p>Your operations manager, office staff, or whoever handles customer communication needs to see these numbers. The gaps aren't visible from the field.</p></div></li>
+    <li><div class="step-content"><h3>Identify your biggest dollar gap</h3><p>Your weakest area is ${weakest} \u2014 this is where the most revenue is sitting. Focus here first.</p></div></li>
+    <li><div class="step-content"><h3>Book a strategy call to build your roadmap</h3><p>In 30 minutes, we'll map your score against your ${fsm} setup and build a prioritized plan starting with ${weakest.toLowerCase()}.</p></div></li>
+  </ol>
+  <div class="divider mt-2"></div>
+  <h3 class="mt-2" style="margin-bottom:0.75rem;">Your 90-Day ROI Projection</h3>
+  <div class="card-flush">
+    <table class="roi-table">
+      <tr><td>Current estimated monthly loss</td><td>$${lossHigh.toLocaleString()}</td></tr>
+      <tr><td>Projected recovery at 60%</td><td>$${projRecovery}</td></tr>
+      <tr class="highlight"><td>Projected annual recovery</td><td>$${projAnnual}</td></tr>
+    </table>
+  </div>
+  <div class="cta-box">
+    <h3>Ready to Close These Gaps?</h3>
+    <p>Book a free strategy call with our team. We'll walk through this report together and build a custom automation plan for your business.</p>
+    <a href="https://agmprotools.com" class="cta-link">Book Your Free Strategy Call</a>
+    <p class="text-xs mt-2" style="margin-bottom:0;color:var(--text-dim);">No obligation. 30 minutes. Tailored to your operation.</p>
+  </div>
+  ${pageFooter(6)}
+</div>
+
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
 }
 </script>
 </body>
