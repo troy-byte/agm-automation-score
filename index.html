@@ -898,6 +898,27 @@ body {
 
 <script>
 // ─────────────────────────────
+// UTM CAPTURE (run once on load, persist across multi-step quiz)
+// ─────────────────────────────
+(function captureUTM() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const incoming = {
+      utm_source: params.get('utm_source') || '',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || '',
+      utm_content: params.get('utm_content') || '',
+      utm_term: params.get('utm_term') || '',
+      referrer: document.referrer || ''
+    };
+    // Only overwrite if a utm_source is present this visit; otherwise preserve prior session
+    if (incoming.utm_source || !sessionStorage.getItem('utm')) {
+      sessionStorage.setItem('utm', JSON.stringify(incoming));
+    }
+  } catch (e) {}
+})();
+
+// ─────────────────────────────
 // DATA
 // ─────────────────────────────
 
@@ -1250,11 +1271,21 @@ function submitEmail(e) {
       answerPayload[keyMap[i]] = Math.max(0, optIdx);
     }
   });
+  // UTM + referrer capture (persisted across multi-step quiz via sessionStorage)
+  let utm = {};
+  try { utm = JSON.parse(sessionStorage.getItem('utm') || '{}'); } catch (e) {}
   const intake = {
     fsm_platform: (bonusAnswers[0] || '').toLowerCase().replace(/\s+/g, '_'),
     crew_count: bonusAnswers[1] || '',
     annual_revenue: bonusAnswers[2] || '',
-    biggest_headache: bonusAnswers[3] || ''
+    biggest_headache: bonusAnswers[3] || '',
+    avg_ticket_value: bonusAnswers[4] || '',
+    utm_source: utm.utm_source || '',
+    utm_medium: utm.utm_medium || '',
+    utm_campaign: utm.utm_campaign || '',
+    utm_content: utm.utm_content || '',
+    utm_term: utm.utm_term || '',
+    referrer: utm.referrer || ''
   };
   const SCORE_API = 'https://agm-pro--agm-automation-score-score-app.modal.run/score';
   fetch(SCORE_API, {
