@@ -1089,6 +1089,31 @@ body {
 })();
 
 // ─────────────────────────────
+// PAGEVIEW PIXEL — fires once per session on first landing
+// ─────────────────────────────
+(function pageviewPixel() {
+  try {
+    if (sessionStorage.getItem('pv_logged')) return;
+    sessionStorage.setItem('pv_logged', '1');
+    let utm = {};
+    try { utm = JSON.parse(sessionStorage.getItem('utm') || '{}'); } catch (e) {}
+    fetch('https://agm-pro--agm-automation-score-score-app.modal.run/pixel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: window.location.pathname + window.location.search,
+        referrer: document.referrer || '',
+        utm_source: utm.utm_source || '',
+        utm_medium: utm.utm_medium || '',
+        utm_campaign: utm.utm_campaign || '',
+        user_agent: navigator.userAgent || ''
+      }),
+      keepalive: true
+    }).catch(() => {});
+  } catch (e) {}
+})();
+
+// ─────────────────────────────
 // DATA
 // ─────────────────────────────
 
